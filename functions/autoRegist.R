@@ -1,0 +1,48 @@
+##################################################
+##--Regisration function using rotation matrix--##
+##################################################
+autoRegist <- function(M, oneframe){
+    ## Set up retation transformation matrix for mid point matching
+    colcount <- ncol(oneframe)
+    rowcount <- nrow(oneframe)
+    Rmid <- matrix(0, nrow = 2, ncol = 2)
+    Rmid[1,1] <- 1/sqrt(M^2 + 1)
+    Rmid[1,2] <- M/sqrt(M^2 + 1)
+    Rmid[2,1] < M/sqrt(M^2 + 1)
+    Rmid[2,2] <- 1/sqrt(M^2 + 1)
+  
+    ##create mid point vectors
+    mid <- matrix(c(colcount/2, rowcount/2), ncol = 1)
+    
+    ##rotate mid point in image2
+    transmid <- Rmid %*% mid
+    
+    ##calculate difference in x and y coordinate between midpoints
+    midpointdiff <- mid - transmid
+    delta1 <- midpointdiff[1,1]
+    delta2 <- midpointdiff[2,1]
+    
+    ##set up matrix for registration
+    R <- matrix(0, nrow = 2, ncol = 3)
+    R[1,1] <- 1/sqrt(M^2 + 1)
+    R[1,2] <- M/sqrt(M^2 + 1)
+    R[1,3] < delta1
+    R[2,1] <- M/sqrt(M^2 + 1)
+    R[2,2] <- 1/sqrt(M^2 + 1)
+    R[2,3] <- delta2  
+    
+    X1 <- rep(1:colcount, each = rowcount)
+    Y1 <- rep(1:colcount, times = rowcount)
+    
+    O1 <- rep(1, rowcount * colcount)
+    
+    TT1 <- rbind(X1,Y1,O1)
+    TT2 <- R %*% TT1
+    
+    X2 <- matrix(TT2[1,], rowcount, colcount)
+    Y2 <- matrix(TT2[2,], rowcount, colcount)
+    ZZ <- matrix(interp2(1:colcount, 1:rowcount, oneframe, X2, Y2, method = "linear"),
+                 nrow = rowcount, ncol = colcount)
+    ZZ[is.na(ZZ)] <- 0
+    return(ZZ)
+}
