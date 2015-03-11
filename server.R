@@ -11,7 +11,7 @@ source("./functions/gf.R")
 source("./functions/calculateM.R")
 source("./functions/autoRegist.R")
 
-list.of.packages <- c("RColorBrewer", "RNiftyReg", "bootstrap", "pbapply", "mclust", "shiny")
+list.of.packages <- c("RColorBrewer", "RNiftyReg", "bootstrap", "pbapply", "mclust", "shiny", "pracma")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 library(RColorBrewer)
@@ -239,9 +239,9 @@ shinyServer(
                 "2" = ifelse(is.null(input$iframeSegAuto), 1, input$iframeSegAuto)                
                 )]]
             par(mar = c(2, 2, 2, 2), oma = c(1, 1, 1, 1))
-            mytitle <- paste0("Before Segmentation\n", input$var2, "; Frame ", input$iframeSeg)
+            mytitle <- paste0("Before Segmentation\n", input$var2, ";Frame ", input$iframeSeg)
             image.args <- list(x = myframe, asp = myasp(),
-                               frame.plot = F, main = mytitle, xaxt = "n", yaxt = "n", col = mycolsReg())
+                               frame.plot = F, main = mytitle, xaxt = "n", yaxt = "n", col = colsSeg())
             if(!is.null(input$range2)) image.args$zlim <- c(input$range2[1], input$range2[2])
             do.call(image, image.args)
         })
@@ -276,8 +276,8 @@ shinyServer(
             par(mar = c(2, 2, 2, 2), oma = c(1, 1, 1, 1))
             mytitle <- paste0("After Segmentation\n", input$var2, "; Frame ", input$iframeSegAuto)
             myframeAftSeg <- switch(input$var2,
-                                    "Sequence one" = framesSegAuto1()[[input$iframeSegAuto]],
-                                    "Sequence two" = framesSegAuto2()[[input$iframeSegAuto]])            
+                                    "Sequence one" = framesSegAuto1()[[ifelse(is.null(input$iframeSegAuto), 1, input$iframeSegAuto)]],
+                                    "Sequence two" = framesSegAuto2()[[ifelse(is.null(input$iframeSegAuto), 1, input$iframeSegAuto)]])
             image.args <- list(x = myframeAftSeg, asp = myasp(),
                                frame.plot = F, main = mytitle, xaxt = "n", yaxt = "n", col = colsSeg())
             if(!is.null(input$range2)) image.args$zlim = c(input$range2[1], input$range2[2])
@@ -418,8 +418,6 @@ shinyServer(
             else return(framesSegManual2())
         })                
 
-
-        
         output$FinalSeg <- renderText({
             paste0("Sequence 1: ", seq1Text(), "\n", "Sequence 2: ", seq2Text(), "\n")
         })
@@ -514,7 +512,7 @@ shinyServer(
                         label = "Which frame do you want to see?",
                         min = 1, max = nframes(), value = 1)
         })
-        
+
         ##-----------------------------##
         ##------- Range of pixels -----##
         ##-----------------------------##
@@ -522,7 +520,7 @@ shinyServer(
             mySeq <- switch(input$var3, 
                             "Sequence one" = frames1Seg(),
                             "Sequence two" = frames2Seg())
-            myframe <- mySeq[[ifelse(is.null(input$iframe3), 1, input$iframe3)]]            
+            myframe <- mySeq[[ifelse(is.null(input$iframe3), 1, input$iframe3)]]
             sliderInput("range3",
                         label = "Range of pixel intensities to display",
                         min = min(myframe), max = max(myframe),
@@ -533,7 +531,8 @@ shinyServer(
         ##------- Img before Registration -----##
         ##-------------------------------------##
         output$oneframeBfReg1 <- renderPlot({
-            myframe <- frames1Seg()[[ifelse(is.null(input$iframe3), 1, input$iframe3)]]
+            myframe <- frames1Seg()[[ifelse(is.null(input$iframe3),
+                                            1, input$iframe3)]]
             par(mar = c(1, 1, 3, 1), oma = c(1,1,1,1))
             mytitle <- paste0("Before Registration\n", input$var3, "; Frame ", input$iframe3)
             par(mar = c(1, 1, 3, 1), oma = c(1,1,1,1))	
@@ -552,7 +551,7 @@ shinyServer(
         ##------- Img before Registration -----##
         ##-------------------------------------##
         output$oneframeBfReg2 <- renderPlot({
-            myframe <- frames2Seg()[[input$iframe3]]
+            myframe <- frames2Seg()[[ifelse(is.null(input$iframe3), 1, input$iframe3)]]
             par(mar = c(1, 1, 3, 1), oma = c(1,1,1,1))
             mytitle <- paste0("Before Registration\n", input$var3, "; Frame ", input$iframe3)
             par(mar = c(1, 1, 3, 1), oma = c(1,1,1,1))	
@@ -572,12 +571,12 @@ shinyServer(
         ##-------------------------------------##
         imgManualRegist1 <- reactive({
             if(is.null(vClicks1$click3)) return(NULL)
-            manualRegist(frames1Seg()[[input$iframe3]], vClicks1$click1, vClicks1$click2, vClicks1$click3)
+            manualRegist(frames1Seg()[[ifelse(is.null(input$iframe3), 1, input$iframe3)]], vClicks1$click1, vClicks1$click2, vClicks1$click3)
         })
 
         imgManualRegist2 <- reactive({
             if(is.null(vClicks2$click3)) return(NULL)
-            manualRegist(frames2Seg()[[input$iframe3]], vClicks2$click1, vClicks2$click2, vClicks2$click3)
+            manualRegist(frames2Seg()[[ifelse(is.null(input$iframe3), 1, input$iframe3)]], vClicks2$click1, vClicks2$click2, vClicks2$click3)
         })        
         
         output$oneframeAftReg1 <- renderPlot({
@@ -624,7 +623,6 @@ shinyServer(
             if(is.null(RegDone2$x)) "Segmentation not done"
             else("Segmentation finished")
         })        
-
 
         frames1Reg <- reactive({
             if(input$useReg1 == 0){
