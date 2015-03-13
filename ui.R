@@ -27,7 +27,7 @@ shinyUI(
                                 br(),
                                 
                                 h1("gLASR", align = "center"),
-                                h3("generalized Longitudinal Analysis and Self-Registration", align = "center"),
+                                h3("generalized Longitudinal Analysis and Self-Registration for Analysis of Images", align = "center"),
                                 br(),
                                 h5("Coded by: Yifan Xu and Jang Ik Cho"),
                                 h5("Based on and improved upon Matlab code by Jang Ik Cho, Yifan Xu, Xiaofeng Wang and Jiayang Sun"),
